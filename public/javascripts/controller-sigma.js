@@ -107,39 +107,39 @@ function SigmaController(){
 	}
 	
 	this.overNode = function(callback){
-		s.bind('overNode', function(event){
-			var node = event.data.node;
-			event.data.node.label = node.label?node.label:g.nodes(node.id).label;
-			event.data.node.outDegree = s.graph.degree(node.id, "out");
-			event.data.node.inDegree = s.graph.degree(node.id, "in");
-			event.data.node.degree = s.graph.degree(node.id);
-			callback(event);
+		s.bind('overNode', function(e){
+			var node = e.data.node;
+			e.data.node.label = node.label?node.label:g.nodes(node.id).label;
+			e.data.node.outDegree = s.graph.degree(node.id, "out");
+			e.data.node.inDegree = s.graph.degree(node.id, "in");
+			e.data.node.degree = s.graph.degree(node.id);
+			callback(e);
 		});
 	}
 	
 	this.outNode = function(callback){
-		s.bind('outNode', function(event){callback(event);});
+		s.bind('outNode', function(e){callback(e);});
 	}
 	
 	this.overEdge = function(callback){
-		s.bind('overEdge', function(event){
-			var edge = event.data.edge;
-			event.data.edge.sourceLabel = g.nodes(edge.source).label;
-			event.data.edge.targetLabel = g.nodes(edge.target).label,
-			callback(event);
+		s.bind('overEdge', function(e){
+			var edge = e.data.edge;
+			e.data.edge.sourceLabel = g.nodes(edge.source).label;
+			e.data.edge.targetLabel = g.nodes(edge.target).label,
+			callback(e);
 		});
 	}
 	
 	this.outEdge = function(callback){
-		s.bind('outEdge', function(event){callback(event);});
+		s.bind('outEdge', function(e){callback(e);});
 	}
 
 	this.clickStage = function(callback){
-		s.bind('clickStage', function(event){callback(event);});
+		s.bind('clickStage', function(e){callback(e);});
 	}
 
 	this.doubleClickStage = function (callback) {
-		s.bind('doubleClickStage', function(event){callback(event);});
+		s.bind('doubleClickStage', function(e){callback(e);});
 	}
 
 	this.addNode = function (node) {
@@ -152,11 +152,22 @@ function SigmaController(){
 		s.refresh();
 	}
 
-	this.clickNode = function(callback){
-		s.bind('clickNode', function(event){callback(event);});
+	this.doubleClickNode = function(callback){
+		s.bind('doubleClickNode', function(e){callback(e);});
 	}
 
 	this.addEdge = function(edge){
-		
+		if(!edge.id) edge.id = s.graph.edges().length;
+		var flag = s.graph.edges().some(function(e){
+			if(e.source==edge.source && e.target==edge.target)
+				return true;
+			else
+				return false;
+		});
+		if(flag) return;
+		g.addEdge(edge);
+		s.graph.addEdge(edge);
+		s.refresh();
+		console.log(s.graph.edges().length);
 	}
 }

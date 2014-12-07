@@ -34,11 +34,27 @@ function initSigma(){
 	// 	});
 	// }, false);
 
-	sigmaController.doubleClickStage(function(event){
+	sigmaController.doubleClickStage(function(e){
 		sigmaController.addNode({
 			label: 'Node-' + Math.floor(Math.random()*10000),
-			x: event.data.captor.x,
-			y: event.data.captor.y
+			x: e.data.captor.x,
+			y: e.data.captor.y
 		});
+	});
+
+	var source = null;
+	sigmaController.doubleClickNode(function(e){
+		if(!source) {
+			source = e.data.node;
+			// source.color = '#00ff00';
+		}
+		else {
+			sigmaController.addEdge({
+				source: source.id,
+				target: e.data.node.id
+			});
+			// source.color = sigmaController.setSettings.defaultNodeColor;
+			source = null;
+		}
 	});
 }
