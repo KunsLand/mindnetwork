@@ -5,3 +5,29 @@
 	bottom: 0;
 	position: absolute;
 }
+
+#control-panel {
+	top: 10px;
+	left: 10px;
+	width: 200px;
+	height: auto;
+	padding: 5px;
+	color: white;
+	position: absolute;
+	background-color: #69D2E7;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.unselectable {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+label {
+	font-size: 160%;
+}
+

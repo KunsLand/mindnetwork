@@ -2,3 +2,12 @@ extends layout
 
 block content
 	div#container
+	div#control-panel.unselectable
+		//h3 Control Panel
+		label.switch.green Auto Rescale:  
+			input#auto-rescale-checkbox(type="checkbox")
+			i
+		br
+		label.switch.green Force Layout:  
+			input#layout-checkbox(type="checkbox")
+			i
