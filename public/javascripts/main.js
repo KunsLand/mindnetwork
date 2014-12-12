@@ -1,3 +1,5 @@
+sigma.renderers.def = sigma.renderers.canvas;
+
 var s = new sigma({
 	type: 'canvas',
 	container: 'container',

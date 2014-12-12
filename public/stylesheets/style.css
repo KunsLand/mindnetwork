@@ -9,7 +9,7 @@
 #control-panel {
 	top: 10px;
 	left: 10px;
-	width: 200px;
+	width: auto;
 	height: auto;
 	padding: 5px;
 	color: white;
