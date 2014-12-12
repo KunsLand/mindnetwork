@@ -31,3 +31,46 @@ label {
 	font-size: 160%;
 }
 
+ul.menu {
+	width: auto;
+	height: auto;
+	display: none;
+	position: absolute;
+	background-color: #69D2E7;
+	color: white;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+ul.menu li:hover {
+	background-color: #F38630;
+}
+
+#new-node {
+	width: auto;
+	height: auto;
+	color: white;
+	padding-left: 2px;
+	display: none;
+	font-weight: bold;
+	position: absolute;
+	background-color: #69D2E7;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+#new-node input:last-child {
+	background-color: #F38630;
+	color: white;
+	border: none;
+	font-size: 18px;
+}
+
+input[type="text"] {
+	border: none;
+	font-family: sans-serif;
+	font-size: 18px;
+}
+
+input[type="text"]:focus{
+	outline: none;
+	box-shadow: 0 0 5px rgba(250, 105, 0, 1);
+}

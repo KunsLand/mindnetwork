@@ -5,6 +5,24 @@ var s = new sigma({
 	container: 'container',
 });
 s.settings({
+    defaultNodeColor: "#7e7e7e",
+    defaultNodeHoverColor: "#41A317",
+    nodeHoverColor: "default",
+    labelColor: "node",
+    defaultLabelHoverColor: "#41A317",
+    labelHoverColor: "default",
+    labelHoverShadow: "default",
+    labelHoverShadowColor: "#41A317",
+    hoverFontStyle: "bold",
+
+    defaultEdgeColor: "#d3d3d3",
+    edgeColor: "default",
+    enableEdgeHovering: true,
+    defaultEdgeHoverColor: '#52D017',
+    edgeHoverColor: 'default',
+    edgeHoverSizeRatio: 2,
+    edgeHoverExtremities: true,
+
 	doubleClickEnabled: false,
 	autoRescale: false
 });
@@ -23,8 +41,24 @@ dragListener.bind('startdrag drag drop dragend', function(e){
 	}
 });
 
+var menuItems = {
+	newNode: "Create New Node",
+	edit: "Edit",
+	del: "Delete",
+	hide: "Hide",
+	reverse: "Reverse"
+};
+
+$(".hiddable").hide();
+$(".menu").menu();
+var hiddable_shown = false;
 s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	+ ' clickEdge doubleClickEdge', function(e){
+	if(hiddable_shown){
+		$(".hiddable").hide();
+		hiddable_shown = false;
+		return;
+	}
 	if(e.type == 'clickStage'){
 		//
 	} else if (e.type == 'doubleClickStage'){
@@ -34,11 +68,98 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	} else if (e.type == 'doubleClickNode'){
 		doubleClickNode(e);
 	} else if (e.type == 'clickEdge'){
-		//
+		console.log(e.data.edge);
 	} else if (e.type == 'doubleClickEdge'){
 		//
 	}
 });
+
+s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
+	hiddable_shown = !hiddable_shown;
+	if(!hiddable_shown){
+		$(".hiddable").hide();
+		return;
+	}
+	var clickPosition = {
+		top: e.data.captor.clientY + 2,
+		left: e.data.captor.clientX + 1
+	};
+	if(e.type == 'rightClickStage'){
+		$("#stage-menu").menu({
+			select: function(evt, ui){
+				hiddable_shown = false;
+				if(ui.item.text() == menuItems.newNode){
+					console.log("Create New Node.");
+					$("#new-node").css(clickPosition)
+						.keypress(function(evt_key){
+							if(evt_key.which == 13){
+								var title = $("#new-node input:first").val();
+								if(title == null || title.length < 1) return;
+								addNode(e, title);
+								$(this).hide();
+								hiddable_shown = false;
+							}
+						})
+						.show();
+					$("#new-node input:last").click(function(){
+						var title = $("#new-node input:first").val();
+						if(title == null || title.length < 1) return;
+						addNode(e, title);
+						$("#new-node").hide();
+						hiddable_shown = false;
+					});
+					hiddable_shown = true;
+				}
+				$(this).hide();
+			}
+		}).css(clickPosition).show();
+	} else if(e.type == 'rightClickNode') {
+		$("#node-menu").menu({
+			select: function(evt, ui){
+				if(ui.item.text() == menuItems.edit){
+					console.log("Edit Node: " + e.data.node.id);
+				} else if(ui.item.text() == menuItems.del){
+					console.log("Delete Node: " + e.data.node.id);
+				} else if(ui.item.text() == menuItems.hide){
+					console.log("Hide Node: " + e.data.node.id);
+				}
+				$(this).hide();
+				hiddable_shown = false;
+			}
+		}).css(clickPosition).show();
+	} else if(e.type == 'rightClickEdge') {
+		$("#edge-menu").menu({
+			select: function(evt, ui){
+				if(ui.item.text() == menuItems.edit){
+					console.log("Edit Edge: " + e.data.edge.id);
+				} else if(ui.item.text() == menuItems.del){
+					console.log("Delete Edge: " + e.data.edge.id);
+				} else if(ui.item.text() == menuItems.hide){
+					console.log("Hide Edge: " + e.data.edge.id);
+				} else if(ui.item.text() == menuItems.reverse){
+					console.log("Reverse Edge: " + e.data.edge.id);
+				}
+				$(this).hide();
+				hiddable_shown = false;
+			}
+		}).css(clickPosition).show();
+	}
+});
+
+function addNode(e, title){
+	if(title==null || title.length == 0) return;
+	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
+		nid = s.graph.nodes().length,
+		node = {
+			id: "n" + nid,
+			label: title,
+			size: s.settings('maxNodeSize'),
+			x: p.x,
+			y: p.y
+		};
+	s.graph.addNode(node);
+	s.refresh();
+}
 
 function doubleClickStage(e){
 	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
@@ -59,7 +180,7 @@ function doubleClickNode(e){
 	var node = e.data.node;
 	if(!source)	{
 		source = node;
-		source.color = "#006400";
+		source.color = s.settings('defaultNodeHoverColor');
 	}
 	else if(source.id != node.id){
 		var edge = {
@@ -78,6 +199,10 @@ function doubleClickNode(e){
 	s.refresh();
 }
 
+$("body").bind('contextmenu', function(e){
+    return false;
+}); 
+
 $("#control-panel").mouseover(function(){
 	$(this).removeClass("unselectable");
 }).mouseout(function(){
@@ -88,6 +213,14 @@ $("#control-panel").mouseover(function(){
 
 $("#auto-rescale-checkbox").change(function(){
 	s.settings({autoRescale: $(this).is(':checked')});
+	if($(this).is(':checked')){
+		s.camera.goTo({
+			x: 0,
+			y: 0,
+			angle: 0,
+			ratio: 1
+		});
+	}
 	s.refresh();
 });
 
