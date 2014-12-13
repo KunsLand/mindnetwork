@@ -58,6 +58,41 @@ ul.menu li:hover {
 	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
+#new-node:after {
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	border-color: rgba(243, 134, 48, 0);
+	border-width: 10px;
+	margin-left: -10px;
+}
+
+#new-node.upleft:after {
+	bottom: 100%;
+	left: 10px;
+	border-bottom-color: #F38630;
+}
+
+#new-node.upright:after {
+	bottom: 100%;
+	right: 0;
+	border-bottom-color: #F38630;
+}
+
+#new-node.downleft:after {
+	top: 100%;
+	left: 10px;
+	border-top-color: #F38630;
+}
+
+#new-node.downright:after {
+	top: 100%;
+	right: 0;
+	border-top-color: #F38630;
+}
+
 #new-node input:last-child {
 	background-color: #F38630;
 	border-right: 0;

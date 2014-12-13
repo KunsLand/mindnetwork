@@ -49,14 +49,18 @@ var menuItems = {
 	reverse: "Reverse"
 };
 
-$(".hiddable").hide();
-$(".menu").menu();
+$(".menu").menu().hide();
+$("#new-node").hide();
+$("input[type='text']").on("click", function () {
+   $(this).select();
+});
 var hiddable_shown = false;
 s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	+ ' clickEdge doubleClickEdge', function(e){
 	if(hiddable_shown){
-		$(".hiddable").hide();
-		$("#new-node").unbind().children().last().unbind();
+		$(".menu").hide();
+		$("#new-node").hide().unbind()
+			.removeClass().children().last().unbind();
 		hiddable_shown = false;
 		return;
 	}
@@ -75,7 +79,7 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	}
 });
 
-var sateMenu = { width: $("#stage-menu").width(),
+var stageMenu = { width: $("#stage-menu").width(),
 		height: $("#stage-menu").height()}
 	nodeMenu = {width: $("#node-menu").width(),
 		height: $("#node-menu").height()},
@@ -87,10 +91,13 @@ var sateMenu = { width: $("#stage-menu").width(),
 s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	hiddable_shown = !hiddable_shown;
 	if(!hiddable_shown){
-		$(".hiddable").hide();
-		$("#new-node").unbind().children().last().unbind();
+		$(".menu").hide();
+		$("#new-node").hide().unbind()
+			.removeClass().children().last().unbind();
 		return;
 	}
+	var pos = adjustPosition(e, stageMenu);
+	console.log(pos.cls);
 	if(e.type == 'rightClickStage'){
 		$("#stage-menu").menu({
 			select: function(evt, ui){
@@ -100,7 +107,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 				}
 				$(this).hide();
 			}
-		}).css(addJustPosition(e, sateMenu)).show();
+		}).addClass(pos.cls).css(pos.css).show();
 	} else if(e.type == 'rightClickNode') {
 		$("#node-menu").menu({
 			select: function(evt, ui){
@@ -108,13 +115,17 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					console.log("Edit Node: " + e.data.node.id);
 				} else if(ui.item.text() == menuItems.del){
 					console.log("Delete Node: " + e.data.node.id);
+					s.graph.dropNode(e.data.node.id);
+					s.refresh();
 				} else if(ui.item.text() == menuItems.hide){
 					console.log("Hide Node: " + e.data.node.id);
+					e.data.node.hidden = true;
+					s.refresh();
 				}
 				$(this).hide();
 				hiddable_shown = false;
 			}
-		}).css(addJustPosition(e, nodeMenu)).show();
+		}).addClass(pos.cls).css(pos.css).show();
 	} else if(e.type == 'rightClickEdge') {
 		$("#edge-menu").menu({
 			select: function(evt, ui){
@@ -122,22 +133,34 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					console.log("Edit Edge: " + e.data.edge.id);
 				} else if(ui.item.text() == menuItems.del){
 					console.log("Delete Edge: " + e.data.edge.id);
+					s.graph.dropEdge(e.data.edge.id);
+					s.refresh();
 				} else if(ui.item.text() == menuItems.hide){
 					console.log("Hide Edge: " + e.data.edge.id);
+					e.data.edge.hidden = true;
+					s.refresh();
 				} else if(ui.item.text() == menuItems.reverse){
 					console.log("Reverse Edge: " + e.data.edge.id);
+					// console.log("Before reverse: ", e.data.edge);
+					// var edge = e.data.edge,
+					// 	source = edge.source,
+					// 	target = edge.target;
+					// edge.source = target;
+					// edge.target = source;
+					// s.refresh();
+					// console.log("After reverse: ", e.data.edge);
 				}
 				$(this).hide();
 				hiddable_shown = false;
 			}
-		}).css(addJustPosition(e, edgeMenu)).show();
+		}).addClass(pos.cls).css(pos.css).show();
 	}
 });
 
 function doSelectNewNode(e){
 	console.log("Create New Node.");
-	$("#new-node")
-		.css(addJustPosition(e, newNodeElement))
+	var pos = adjustPosition(e, newNodeElement, 10);
+	$("#new-node").addClass(pos.cls).css(pos.css)
 		.keypress(function(evt_key){
 			if(evt_key.which == 13){
 				var title = $("#new-node input:first").val();
@@ -160,26 +183,36 @@ function doSelectNewNode(e){
 	hiddable_shown = true;
 }
 
-function addJustPosition(e, target){
+function adjustPosition(e, target, ps){
 	var w = target.width,
 		h = target.height,
 		x = e.data.captor.clientX,
 		y = e.data.captor.clientY,
 		winW = $(window).width(),
-		winH = $(window).height();
-	if(x + w + 1 > winW){
-		x -= 1 + w;
+		winH = $(window).height(),
+		cls = "";
+	if(!ps) ps = 0;
+	if(y + h + ps + 1 > winH){
+		y = winH - h - 2*ps - 1;
+		cls += "down";
 	} else {
-		x += 1;
+		y += 1 + ps;
+		cls += "up";
 	}
-	if(y + h + 1 > winH){
-		y -= 1 + h;
+	if(x + w + 1 > winW){
+		x -= 1 + w - ps;
+		if(x + w > winW) x = winW - w - 10;
+		cls += "right";
 	} else {
-		y += 1;
+		x += 1 - ps;
+		cls += "left";
 	}
 	return {
-		top: y,
-		left: x
+		css: {
+			top: y,
+			left: x
+		},
+		cls: cls
 	}
 }
 
