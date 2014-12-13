@@ -34,10 +34,11 @@ label {
 ul.menu {
 	width: auto;
 	height: auto;
+	color: white;
 	display: none;
+	overflow: hidden;
 	position: absolute;
 	background-color: #69D2E7;
-	color: white;
 	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
@@ -46,8 +47,8 @@ ul.menu li:hover {
 }
 
 #new-node {
-	width: auto;
-	height: auto;
+	width: 312px;
+	height: 23px;
 	color: white;
 	padding-left: 2px;
 	display: none;
@@ -59,6 +60,7 @@ ul.menu li:hover {
 
 #new-node input:last-child {
 	background-color: #F38630;
+	border-right: 0;
 	color: white;
 	border: none;
 	font-size: 18px;

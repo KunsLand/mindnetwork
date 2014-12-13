@@ -56,6 +56,7 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	+ ' clickEdge doubleClickEdge', function(e){
 	if(hiddable_shown){
 		$(".hiddable").hide();
+		$("#new-node").unbind().children().last().unbind();
 		hiddable_shown = false;
 		return;
 	}
@@ -74,45 +75,32 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	}
 });
 
+var sateMenu = { width: $("#stage-menu").width(),
+		height: $("#stage-menu").height()}
+	nodeMenu = {width: $("#node-menu").width(),
+		height: $("#node-menu").height()},
+	edgeMenu = {width: $("#edge-menu").width(),
+		height: $("#edge-menu").height()},
+	newNodeElement = {width: $("#new-node").width(),
+		height: $("#new-node").height()};
+
 s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	hiddable_shown = !hiddable_shown;
 	if(!hiddable_shown){
 		$(".hiddable").hide();
+		$("#new-node").unbind().children().last().unbind();
 		return;
 	}
-	var clickPosition = {
-		top: e.data.captor.clientY + 2,
-		left: e.data.captor.clientX + 1
-	};
 	if(e.type == 'rightClickStage'){
 		$("#stage-menu").menu({
 			select: function(evt, ui){
 				hiddable_shown = false;
 				if(ui.item.text() == menuItems.newNode){
-					console.log("Create New Node.");
-					$("#new-node").css(clickPosition)
-						.keypress(function(evt_key){
-							if(evt_key.which == 13){
-								var title = $("#new-node input:first").val();
-								if(title == null || title.length < 1) return;
-								addNode(e, title);
-								$(this).hide();
-								hiddable_shown = false;
-							}
-						})
-						.show();
-					$("#new-node input:last").click(function(){
-						var title = $("#new-node input:first").val();
-						if(title == null || title.length < 1) return;
-						addNode(e, title);
-						$("#new-node").hide();
-						hiddable_shown = false;
-					});
-					hiddable_shown = true;
+					doSelectNewNode(e);
 				}
 				$(this).hide();
 			}
-		}).css(clickPosition).show();
+		}).css(addJustPosition(e, sateMenu)).show();
 	} else if(e.type == 'rightClickNode') {
 		$("#node-menu").menu({
 			select: function(evt, ui){
@@ -126,7 +114,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 				$(this).hide();
 				hiddable_shown = false;
 			}
-		}).css(clickPosition).show();
+		}).css(addJustPosition(e, nodeMenu)).show();
 	} else if(e.type == 'rightClickEdge') {
 		$("#edge-menu").menu({
 			select: function(evt, ui){
@@ -142,9 +130,58 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 				$(this).hide();
 				hiddable_shown = false;
 			}
-		}).css(clickPosition).show();
+		}).css(addJustPosition(e, edgeMenu)).show();
 	}
 });
+
+function doSelectNewNode(e){
+	console.log("Create New Node.");
+	$("#new-node")
+		.css(addJustPosition(e, newNodeElement))
+		.keypress(function(evt_key){
+			if(evt_key.which == 13){
+				var title = $("#new-node input:first").val();
+				if(title == null || title.length < 1) return;
+				addNode(e, title);
+				$(this).children().last().unbind();
+				$(this).unbind().hide();
+				hiddable_shown = false;
+			}
+		})
+		.show();
+	$("#new-node input:last").click(function(){
+		var title = $("#new-node input:first").val();
+		if(title == null || title.length < 1) return;
+		addNode(e, title);
+		$(this).unbind();
+		$("#new-node").unbind().hide();
+		hiddable_shown = false;
+	});
+	hiddable_shown = true;
+}
+
+function addJustPosition(e, target){
+	var w = target.width,
+		h = target.height,
+		x = e.data.captor.clientX,
+		y = e.data.captor.clientY,
+		winW = $(window).width(),
+		winH = $(window).height();
+	if(x + w + 1 > winW){
+		x -= 1 + w;
+	} else {
+		x += 1;
+	}
+	if(y + h + 1 > winH){
+		y -= 1 + h;
+	} else {
+		y += 1;
+	}
+	return {
+		top: y,
+		left: x
+	}
+}
 
 function addNode(e, title){
 	if(title==null || title.length == 0) return;
@@ -162,17 +199,6 @@ function addNode(e, title){
 }
 
 function doubleClickStage(e){
-	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
-		nid = s.graph.nodes().length,
-		node = {
-			id: "n" + nid,
-			label: "Node-" + nid,
-			size: s.settings('maxNodeSize'),
-			x: p.x,
-			y: p.y
-		};
-	s.graph.addNode(node);
-	s.refresh();
 }
 
 var source = null;
