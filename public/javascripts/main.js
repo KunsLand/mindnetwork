@@ -54,11 +54,13 @@ $("#new-node").hide();
 $("input[type='text']").on("click", function () {
    $(this).select();
 });
-var hiddable_shown = false;
+var hiddable_shown = false,
+	nodeClicked = false;
 s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	+ ' clickEdge doubleClickEdge', function(e){
 	if(hiddable_shown){
 		$(".menu").hide();
+		$("#node-info").hide();
 		$("#new-node").hide().unbind()
 			.removeClass().children().last().unbind();
 		$("#name-value").hide().unbind()
@@ -72,6 +74,7 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 		doubleClickStage(e);
 	} else if (e.type == 'clickNode'){
 		console.log(e.data.node);
+		showNodeInfo(e);
 	} else if (e.type == 'doubleClickNode'){
 		doubleClickNode(e);
 	} else if (e.type == 'clickEdge'){
@@ -96,6 +99,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	hiddable_shown = !hiddable_shown;
 	if(!hiddable_shown){
 		$(".menu").hide();
+		$("#node-info").hide();
 		$("#new-node").hide().unbind()
 			.removeClass().children().last().unbind();
 		$("#name-value").hide().unbind()
@@ -173,9 +177,10 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 s.bind('overNode outNode overEdge outEdge',function(e){
 	if(e.type == "overNode"){
 		console.log("Over Node: " + e.data.node.id);
-		showNodeHoverInfo(e);
+		// showNodeInfo(e);
 	} else if(e.type == "outNode"){
 		console.log("Out Node: " + e.data.node.id);
+		// $("#node-info").hide();
 	} else if(e.type == "overEdge"){
 		console.log("Over Edge: " + e.data.edge.id);
 	} else if(e.type == "outEdge"){
@@ -183,8 +188,19 @@ s.bind('overNode outNode overEdge outEdge',function(e){
 	}
 });
 
-function showNodeHoverInfo(e){
-	var node = e.data.node;
+var nodeInfo = {width: $("#node-info").width(),
+				height: $("#node-info").height()},
+	tabs = $(".tabs > li");
+tabs.on("click", function(){
+	tabs.removeClass("active");
+	$(this).addClass("active");
+	$(".detail").html("<span>"+$(this).text()+"</span>");
+});
+function showNodeInfo(e){
+	var node = e.data.node,
+		pos = adjustPosition(e, nodeInfo, 10);
+	$("#node-info").removeClass().addClass(pos.cls).css(pos.css).show();
+	hiddable_shown = true;
 }
 
 function doSelectNewNode(e){
