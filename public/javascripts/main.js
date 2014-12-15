@@ -61,6 +61,8 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 		$(".menu").hide();
 		$("#new-node").hide().unbind()
 			.removeClass().children().last().unbind();
+		$("#name-value").hide().unbind()
+			.removeClass().children().last().unbind();
 		hiddable_shown = false;
 		return;
 	}
@@ -85,6 +87,8 @@ var stageMenu = { width: $("#stage-menu").width(),
 		height: $("#node-menu").height()},
 	edgeMenu = {width: $("#edge-menu").width(),
 		height: $("#edge-menu").height()},
+	nameValue = {width: $("#name-value").width(),
+		height: $("#name-value").height()},
 	newNodeElement = {width: $("#new-node").width(),
 		height: $("#new-node").height()};
 
@@ -93,6 +97,8 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	if(!hiddable_shown){
 		$(".menu").hide();
 		$("#new-node").hide().unbind()
+			.removeClass().children().last().unbind();
+		$("#name-value").hide().unbind()
 			.removeClass().children().last().unbind();
 		return;
 	}
@@ -115,8 +121,12 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	} else if(e.type == 'rightClickNode') {
 		$("#node-menu").menu({
 			select: function(evt, ui){
+				var p = adjustPosition(e, nameValue, 10);
+				hiddable_shown = false;
 				if(ui.item.text() == menuItems.edit){
 					console.log("Edit Node: " + e.data.node.id);
+					$("#name-value").removeClass().addClass(p.cls).css(p.css).show();
+					hiddable_shown = true;
 				} else if(ui.item.text() == menuItems.del){
 					console.log("Delete Node: " + e.data.node.id);
 					s.graph.dropNode(e.data.node.id);
@@ -127,7 +137,6 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					s.refresh();
 				}
 				$(this).hide();
-				hiddable_shown = false;
 			}
 		}).addClass(pos.cls).css(pos.css).show();
 	} else if(e.type == 'rightClickEdge') {
@@ -161,10 +170,27 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	}
 });
 
+s.bind('overNode outNode overEdge outEdge',function(e){
+	if(e.type == "overNode"){
+		console.log("Over Node: " + e.data.node.id);
+		showNodeHoverInfo(e);
+	} else if(e.type == "outNode"){
+		console.log("Out Node: " + e.data.node.id);
+	} else if(e.type == "overEdge"){
+		console.log("Over Edge: " + e.data.edge.id);
+	} else if(e.type == "outEdge"){
+		console.log("Out Edge: " + e.data.edge.id);
+	}
+});
+
+function showNodeHoverInfo(e){
+	var node = e.data.node;
+}
+
 function doSelectNewNode(e){
 	console.log("Create New Node.");
 	var pos = adjustPosition(e, newNodeElement, 10);
-	$("#new-node").addClass(pos.cls).css(pos.css)
+	$("#new-node").removeClass().addClass(pos.cls).css(pos.css)
 		.keypress(function(evt_key){
 			if(evt_key.which == 13){
 				var title = $("#new-node input:first").val();

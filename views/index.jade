@@ -1,8 +1,8 @@
 extends layout
 
 block content
-	div#container
-	div#control-panel.unselectable
+	#container
+	#control-panel.unselectable
 		//h3 Control Panel
 		label.switch.green Auto Rescale:  
 			input#auto-rescale-checkbox(type="checkbox")
@@ -22,7 +22,13 @@ block content
 		li Delete
 		li Hide
 		//li Reverse
-	div#new-node
+	#new-node
 		span  Title: 
 		input(type="text") 
+		input(type="Submit", value="OK")
+	#name-value
+		span Name: 
+		input(type="text")
+		span URL: 
+		input(type="text")
 		input(type="Submit", value="OK")
