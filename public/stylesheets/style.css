@@ -47,8 +47,8 @@ ul.menu li:hover {
 }
 
 #new-node {
-	width: 312px;
-	height: 23px;
+	width: auto;
+	height: auto;
 	color: white;
 	padding-left: 2px;
 	display: none;

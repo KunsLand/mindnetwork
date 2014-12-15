@@ -99,6 +99,10 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	var pos = adjustPosition(e, stageMenu);
 	console.log(pos.cls);
 	if(e.type == 'rightClickStage'){
+		if($("#layout-checkbox").is(":checked"))
+			$("#layout-checkbox").trigger('click');
+		if(s.settings('autoRescale'))
+			$("#auto-rescale-checkbox").trigger('click');
 		$("#stage-menu").menu({
 			select: function(evt, ui){
 				hiddable_shown = false;
