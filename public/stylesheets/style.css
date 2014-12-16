@@ -131,6 +131,7 @@ div > span {
 	height: auto;
 	display: none;
 	position: absolute;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 #node-info .detail {

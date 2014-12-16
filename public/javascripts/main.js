@@ -46,7 +46,8 @@ var menuItems = {
 	edit: "Edit",
 	del: "Delete",
 	hide: "Hide",
-	reverse: "Reverse"
+	reverse: "Reverse",
+	removeAllEdges: "Remove All Edges"
 };
 
 $(".menu").menu().hide();
@@ -73,10 +74,11 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	} else if (e.type == 'doubleClickStage'){
 		doubleClickStage(e);
 	} else if (e.type == 'clickNode'){
-		console.log(e.data.node);
-		showNodeInfo(e);
+		console.log(e);
+		if(e.data.captor.ctrlKey) doSelectNode(e);
+		else showNodeInfo(e);
 	} else if (e.type == 'doubleClickNode'){
-		doubleClickNode(e);
+		//
 	} else if (e.type == 'clickEdge'){
 		console.log(e.data.edge);
 	} else if (e.type == 'doubleClickEdge'){
@@ -139,6 +141,9 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					console.log("Hide Node: " + e.data.node.id);
 					e.data.node.hidden = true;
 					s.refresh();
+				} else if(ui.item.text() == menuItems.removeAllEdges){
+					console.log("Remove All Edges of Node: " + e.data.node.id);
+					removeAllEdges(e.data.node.id);
 				}
 				$(this).hide();
 			}
@@ -201,6 +206,15 @@ function showNodeInfo(e){
 		pos = adjustPosition(e, nodeInfo, 10);
 	$("#node-info").removeClass().addClass(pos.cls).css(pos.css).show();
 	hiddable_shown = true;
+}
+
+function removeAllEdges(nid){
+	s.graph.edges().forEach(function(e){
+		if(e.source == nid || e.target == nid){
+			s.graph.dropEdge(e);
+		}
+	});
+	s.refresh();
 }
 
 function doSelectNewNode(e){
@@ -281,7 +295,7 @@ function doubleClickStage(e){
 }
 
 var source = null;
-function doubleClickNode(e){
+function doSelectNode(e){
 	var node = e.data.node;
 	if(!source)	{
 		source = node;
