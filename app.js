@@ -4,9 +4,14 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongo = require('mongoskin');
+var db = mongo.db("mongodb://localhost:27017/mindnetwork",
+        {native_parser:true});
 
 var routes = require('./routes/index');
 //var users = require('./routes/users');
+var nodes = require('./routes/nodes');
+var edges = require('./routes/edges');
 
 var app = express();
 
@@ -23,8 +28,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
+app.use(function(req,res,next){
+    req.db = db;
+    next();
+});
+
 app.use('/', routes);
 // app.use('/users', users);
+app.use('/nodes', nodes);
+app.use('/edges', edges);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

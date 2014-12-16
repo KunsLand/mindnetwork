@@ -287,8 +287,20 @@ function addNode(e, title){
 			x: p.x,
 			y: p.y
 		};
-	s.graph.addNode(node);
-	s.refresh();
+
+	$.ajax({
+		type: 'POST',
+		data: node,
+		url: '/nodes/newnode',
+		dataType: 'JSON'
+	}).done(function(res){
+		if(res.msg == '200OK'){
+			s.graph.addNode(node);
+			s.refresh();
+		} else {
+			alert('Error: ' + res.msg);
+		}
+	});
 }
 
 function doubleClickStage(e){
@@ -388,4 +400,25 @@ function reMapGraphToRender(){
 	// 	e.size /= bounds.weightMax / s.settings('maxEdgeSize');
 	// });
 	s.refresh();
+}
+
+getGraph();
+function getGraph(){
+	var nodes = null,
+		edges = null,
+		graph = {nodes: [], edges: []};
+	$.getJSON('/nodes/', function(data){
+		graph.nodes = data;
+		console.log(data);
+		s.graph.clear().read(graph);
+		s.settings({autoRescale: true});
+		s.refresh();
+	});
+	$.getJSON('/edges/', function(data){
+		graph.edges = data;
+		console.log(graph);
+		s.graph.clear().read(graph);
+		s.settings({autoRescale: true});
+		s.refresh();
+	});
 }
