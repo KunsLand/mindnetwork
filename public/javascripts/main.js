@@ -27,36 +27,79 @@ s.settings({
 	autoRescale: false
 });
 
-var dragListener = sigma.plugins.dragNodes(s, s.renderers[0]);
-
-dragListener.bind('startdrag drag drop dragend', function(e){
-	if(e.type == 'startdrag'){
-		//
-	} else if(e.type == 'drag'){
-		//
-	} else if(e.type == 'drop'){
-		//
-	} else if(e.type == 'dragend'){
-		//
-	}
-});
+sigma.plugins.dragNodes(s, s.renderers[0]);
 
 var menuItems = {
-	newNode: "Create New Node",
-	edit: "Edit",
-	del: "Delete",
-	hide: "Hide",
-	reverse: "Reverse",
-	removeAllEdges: "Remove All Edges"
-};
+		newNode: "Create New Node",
+		edit: "Edit",
+		del: "Delete",
+		hide: "Hide",
+		reverse: "Reverse",
+		removeAllEdges: "Remove All Edges"
+	},
+	hiddable_shown = false,
+	nodeClicked = false,
+	stageMenu = { width: $("#stage-menu").width(),
+		height: $("#stage-menu").height()}
+	nodeMenu = {width: $("#node-menu").width(),
+		height: $("#node-menu").height()},
+	edgeMenu = {width: $("#edge-menu").width(),
+		height: $("#edge-menu").height()},
+	nameValue = {width: $("#name-value").width(),
+		height: $("#name-value").height()},
+	newNodeElement = {width: $("#new-node").width(),
+		height: $("#new-node").height()};
+
+$("body").bind('contextmenu', function(e){
+    return false;
+}); 
 
 $(".menu").menu().hide();
 $("#new-node").hide();
 $("input[type='text']").on("click", function () {
    $(this).select();
 });
-var hiddable_shown = false,
-	nodeClicked = false;
+
+$("#control-panel").mouseover(function(){
+	$(this).removeClass("unselectable");
+}).mouseout(function(){
+	$(this).addClass("unselectable");
+}).draggable({
+	containment: "window"
+});
+
+$("#auto-rescale-checkbox").change(function(){
+	s.settings({autoRescale: $(this).is(':checked')});
+	if($(this).is(':checked')){
+		s.camera.goTo({x: 0, y: 0, angle: 0, ratio: 1});
+	} else {
+		if($("#layout-checkbox").is(":checked")){
+			$("#layout-checkbox").trigger("click");
+		}
+	}
+	s.refresh();
+});
+
+$("#layout-checkbox").change(function(){
+	if($(this).is(':checked')){
+		if(!$("#auto-rescale-checkbox").is(":checked")){
+			s.settings({autoRescale: true});
+			$("#auto-rescale-checkbox").prop('checked', true);
+		}
+		s.camera.goTo({x: 0, y: 0, angle: 0, ratio: 1});
+		s.refresh();
+		s.startForceAtlas2();
+	} else {
+		if($("#auto-rescale-checkbox").is(":checked")){
+			$("#auto-rescale-checkbox").prop('checked', false);
+			s.settings({autoRescale: false});
+		}
+		s.killForceAtlas2();
+		reMapGraphToRender();
+		s.refresh();
+	}
+});
+
 s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	+ ' clickEdge doubleClickEdge', function(e){
 	if(hiddable_shown){
@@ -72,7 +115,7 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 	if(e.type == 'clickStage'){
 		//
 	} else if (e.type == 'doubleClickStage'){
-		doubleClickStage(e);
+		//
 	} else if (e.type == 'clickNode'){
 		console.log(e);
 		if(e.data.captor.ctrlKey) doSelectNode(e);
@@ -85,17 +128,6 @@ s.bind('clickStage doubleClickStage clickNode doubleClickNode'
 		//
 	}
 });
-
-var stageMenu = { width: $("#stage-menu").width(),
-		height: $("#stage-menu").height()}
-	nodeMenu = {width: $("#node-menu").width(),
-		height: $("#node-menu").height()},
-	edgeMenu = {width: $("#edge-menu").width(),
-		height: $("#edge-menu").height()},
-	nameValue = {width: $("#name-value").width(),
-		height: $("#name-value").height()},
-	newNodeElement = {width: $("#new-node").width(),
-		height: $("#new-node").height()};
 
 s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	hiddable_shown = !hiddable_shown;
@@ -119,7 +151,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 			select: function(evt, ui){
 				hiddable_shown = false;
 				if(ui.item.text() == menuItems.newNode){
-					doSelectNewNode(e);
+					doSelectCreateNewNode(e);
 				}
 				$(this).hide();
 			}
@@ -127,30 +159,23 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	} else if(e.type == 'rightClickNode') {
 		$("#node-menu").menu({
 			select: function(evt, ui){
-				var p = adjustPosition(e, nameValue, 10);
+				var p = adjustPosition(e, nameValue, 10),
+					nid = e.data.node.id;
 				hiddable_shown = false;
 				if(ui.item.text() == menuItems.edit){
-					console.log("Edit Node: " + e.data.node.id);
+					console.log("Edit Node: " + nid);
 					$("#name-value").removeClass().addClass(p.cls).css(p.css).show();
 					hiddable_shown = true;
 				} else if(ui.item.text() == menuItems.del){
-					console.log("Delete Node: " + e.data.node.id);
-					$.ajax({
-						type: 'DELETE',
-						url: '/nodes/delnode/' + e.data.node.id
-					}).done(function(res){
-						if(res.msg=='200OK'){
-							s.graph.dropNode(e.data.node.id);
-							s.refresh();
-						}
-					});
+					console.log("Delete Node: " + nid);
+					removeNode(nid);
 				} else if(ui.item.text() == menuItems.hide){
-					console.log("Hide Node: " + e.data.node.id);
+					console.log("Hide Node: " + nid);
 					e.data.node.hidden = true;
 					s.refresh();
 				} else if(ui.item.text() == menuItems.removeAllEdges){
-					console.log("Remove All Edges of Node: " + e.data.node.id);
-					removeAllEdges(e.data.node.id);
+					console.log("Remove All Edges of Node: " + nid);
+					removeAllEdges(nid);
 				}
 				$(this).hide();
 			}
@@ -158,53 +183,23 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	} else if(e.type == 'rightClickEdge') {
 		$("#edge-menu").menu({
 			select: function(evt, ui){
+				var eid = e.data.edge.id;
 				if(ui.item.text() == menuItems.edit){
-					console.log("Edit Edge: " + e.data.edge.id);
+					console.log("Edit Edge: " + eid);
 				} else if(ui.item.text() == menuItems.del){
-					console.log("Delete Edge: " + e.data.edge.id);
-					$.ajax({
-						type: 'DELETE',
-						url: '/edges/deledge/' + e.data.edge.id
-					}).done(function(res){
-						if(res.msg=='200OK'){
-							e.data.edge.hidden = true;
-							s.graph.dropEdge(e.data.edge.id);
-							s.refresh();
-						}
-					});
+					console.log("Delete Edge: " + eid);
+					removeEdge(eid);
 				} else if(ui.item.text() == menuItems.hide){
-					console.log("Hide Edge: " + e.data.edge.id);
+					console.log("Hide Edge: " + eid);
 					e.data.edge.hidden = true;
 					s.refresh();
 				} else if(ui.item.text() == menuItems.reverse){
-					console.log("Reverse Edge: " + e.data.edge.id);
-					// console.log("Before reverse: ", e.data.edge);
-					// var edge = e.data.edge,
-					// 	source = edge.source,
-					// 	target = edge.target;
-					// edge.source = target;
-					// edge.target = source;
-					// s.refresh();
-					// console.log("After reverse: ", e.data.edge);
+					console.log("Reverse Edge: " + eid);
 				}
 				$(this).hide();
 				hiddable_shown = false;
 			}
 		}).addClass(pos.cls).css(pos.css).show();
-	}
-});
-
-s.bind('overNode outNode overEdge outEdge',function(e){
-	if(e.type == "overNode"){
-		console.log("Over Node: " + e.data.node.id);
-		// showNodeInfo(e);
-	} else if(e.type == "outNode"){
-		console.log("Out Node: " + e.data.node.id);
-		// $("#node-info").hide();
-	} else if(e.type == "overEdge"){
-		console.log("Over Edge: " + e.data.edge.id);
-	} else if(e.type == "outEdge"){
-		console.log("Out Edge: " + e.data.edge.id);
 	}
 });
 
@@ -223,16 +218,43 @@ function showNodeInfo(e){
 	hiddable_shown = true;
 }
 
-function removeAllEdges(nid){
-	s.graph.edges().forEach(function(e){
-		if(e.source == nid || e.target == nid){
-			s.graph.dropEdge(e);
-		}
+function removeNode(nid){
+	deleteNodeRequest(nid, function(res){
+		if(res.msg=='200OK'){
+			s.graph.dropNode(nid);
+			s.refresh();
+		} else { alert(res.msg); }
 	});
-	s.refresh();
+	deleteAllEdgesRequest(nid, function(res){
+		if(res.msg != "200OK") { alert(res.msg); }
+	});
 }
 
-function doSelectNewNode(e){
+function removeEdge(eid){
+	deleteEdgeRequest(eid, function(res){
+		if(res.msg=='200OK'){
+			e.data.edge.hidden = true;
+			s.graph.dropEdge(eid);
+			s.refresh();
+		} else { alert(res.msg);}
+	});
+}
+
+function removeAllEdges(nid){
+	deleteAllEdgesRequest(nid, function(res){
+		if(res.msg == "200OK"){
+			s.graph.edges().forEach(function(e){
+				if(e.source == nid || e.target == nid){
+					s.graph.dropEdge(e.id);
+				}
+			});
+			s.refresh();
+		}
+		else { alert(res.msg); }
+	});
+}
+
+function doSelectCreateNewNode(e){
 	console.log("Create New Node.");
 	var pos = adjustPosition(e, newNodeElement, 10);
 	$("#new-node").removeClass().addClass(pos.cls).css(pos.css)
@@ -245,8 +267,7 @@ function doSelectNewNode(e){
 				$(this).unbind().hide();
 				hiddable_shown = false;
 			}
-		})
-		.show();
+		}).show();
 	$("#new-node input:last").click(function(){
 		var title = $("#new-node input:first").val();
 		if(title == null || title.length < 1) return;
@@ -256,6 +277,57 @@ function doSelectNewNode(e){
 		hiddable_shown = false;
 	});
 	hiddable_shown = true;
+}
+
+function addNode(e, title){
+	if(title==null || title.length == 0) return;
+	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
+		node = {
+			id: title,
+			label: title,
+			size: s.settings('maxNodeSize'),
+			x: p.x,
+			y: p.y
+		};
+	newNodeRequest(node, function(res){
+		if(res.msg == '200OK'){
+			s.graph.addNode(node);
+			s.refresh();
+		} else {
+			alert(res.msg);
+		}
+	});
+}
+
+var source = null;
+function doSelectNode(e){
+	var node = e.data.node;
+	if(!source)	{
+		source = node;
+		source.color = s.settings('defaultNodeHoverColor');
+	}
+	else if(source.id != node.id){
+		var edge = {
+			id: source.id + "->" + node.id,
+			source: source.id,
+			target: node.id,
+			size: s.settings('maxEdgeSize')
+		};
+		source.color = s.settings('defaultNodeColor');
+		source = null;
+		newEdgeRequest(edge, function(res){
+			if(res.msg == '200OK'){
+				s.graph.addEdge(edge);
+				s.refresh();
+			} else {
+				alert(res.msg);
+			}
+		});
+	} else {
+		source.color = s.settings('defaultNodeColor');
+		source = null;
+	}
+	s.refresh();
 }
 
 function adjustPosition(e, target, ps){
@@ -282,133 +354,8 @@ function adjustPosition(e, target, ps){
 		x += 1 - ps;
 		cls += "left";
 	}
-	return {
-		css: {
-			top: y,
-			left: x
-		},
-		cls: cls
-	}
+	return { css: {	top: y,	left: x	}, cls: cls };
 }
-
-function addNode(e, title){
-	if(title==null || title.length == 0) return;
-	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
-		node = {
-			id: title,
-			label: title,
-			size: s.settings('maxNodeSize'),
-			x: p.x,
-			y: p.y
-		};
-
-	$.ajax({
-		type: 'POST',
-		data: node,
-		url: '/nodes/newnode',
-		dataType: 'JSON'
-	}).done(function(res){
-		if(res.msg == '200OK'){
-			s.graph.addNode(node);
-			s.refresh();
-		} else {
-			alert('Error: ' + res.msg);
-		}
-	});
-}
-
-function doubleClickStage(e){
-}
-
-var source = null;
-function doSelectNode(e){
-	var node = e.data.node;
-	if(!source)	{
-		source = node;
-		source.color = s.settings('defaultNodeHoverColor');
-	}
-	else if(source.id != node.id){
-		var edge = {
-			id: source.id + "->" + node.id,
-			source: source.id,
-			target: node.id,
-			size: s.settings('maxEdgeSize')
-		};
-		source.color = s.settings('defaultNodeColor');
-		source = null;
-		$.ajax({
-			type: 'POST',
-			data: edge,
-			url: '/edges/newedge',
-			dataType: 'JSON'
-		}).done(function(res){
-			if(res.msg == '200OK'){
-				s.graph.addEdge(edge);
-				s.refresh();
-			} else {
-				alert("Error: " + res.msg);
-			}
-		});
-	} else {
-		source.color = s.settings('defaultNodeColor');
-		source = null;
-	}
-	s.refresh();
-}
-
-$("body").bind('contextmenu', function(e){
-    return false;
-}); 
-
-$("#control-panel").mouseover(function(){
-	$(this).removeClass("unselectable");
-}).mouseout(function(){
-	$(this).addClass("unselectable");
-}).draggable({
-	containment: "window"
-});
-
-$("#auto-rescale-checkbox").change(function(){
-	s.settings({autoRescale: $(this).is(':checked')});
-	if($(this).is(':checked')){
-		s.camera.goTo({
-			x: 0,
-			y: 0,
-			angle: 0,
-			ratio: 1
-		});
-	} else {
-		if($("#layout-checkbox").is(":checked")){
-			$("#layout-checkbox").trigger("click");
-		}
-	}
-	s.refresh();
-});
-
-$("#layout-checkbox").change(function(){
-	if($(this).is(':checked')){
-		if(!$("#auto-rescale-checkbox").is(":checked")){
-			s.settings({autoRescale: true});
-			$("#auto-rescale-checkbox").prop('checked', true);
-		}
-		s.camera.goTo({
-			x: 0,
-			y: 0,
-			angle: 0,
-			ratio: 1
-		});
-		s.refresh();
-		s.startForceAtlas2();
-	} else {
-		if($("#auto-rescale-checkbox").is(":checked")){
-			$("#auto-rescale-checkbox").prop('checked', false);
-			s.settings({autoRescale: false});
-		}
-		s.killForceAtlas2();
-		reMapGraphToRender();
-		s.refresh();
-	}
-});
 
 function reMapGraphToRender(){
 	if(s.graph.nodes().length < 2) return;
@@ -441,7 +388,7 @@ function getGraph(){
 	var nodes = null,
 		edges = null,
 		graph = {nodes: [], edges: []};
-	$.getJSON('/nodes/', function(data){
+	getNodes(function(data){
 		graph.nodes = data;
 		console.log(data);
 		s.graph.clear().read(graph);
@@ -450,7 +397,7 @@ function getGraph(){
 			$("#layout-checkbox").trigger('click');
 		}
 	});
-	$.getJSON('/edges/', function(data){
+	getEdges(function(data){
 		graph.edges = data;
 		console.log(graph);
 		s.graph.clear().read(graph);
