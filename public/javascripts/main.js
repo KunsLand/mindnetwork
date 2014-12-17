@@ -135,8 +135,15 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					hiddable_shown = true;
 				} else if(ui.item.text() == menuItems.del){
 					console.log("Delete Node: " + e.data.node.id);
-					s.graph.dropNode(e.data.node.id);
-					s.refresh();
+					$.ajax({
+						type: 'DELETE',
+						url: '/nodes/delnode/' + e.data.node.id
+					}).done(function(res){
+						if(res.msg=='200OK'){
+							s.graph.dropNode(e.data.node.id);
+							s.refresh();
+						}
+					});
 				} else if(ui.item.text() == menuItems.hide){
 					console.log("Hide Node: " + e.data.node.id);
 					e.data.node.hidden = true;
@@ -155,8 +162,16 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 					console.log("Edit Edge: " + e.data.edge.id);
 				} else if(ui.item.text() == menuItems.del){
 					console.log("Delete Edge: " + e.data.edge.id);
-					s.graph.dropEdge(e.data.edge.id);
-					s.refresh();
+					$.ajax({
+						type: 'DELETE',
+						url: '/edges/deledge/' + e.data.edge.id
+					}).done(function(res){
+						if(res.msg=='200OK'){
+							e.data.edge.hidden = true;
+							s.graph.dropEdge(e.data.edge.id);
+							s.refresh();
+						}
+					});
 				} else if(ui.item.text() == menuItems.hide){
 					console.log("Hide Edge: " + e.data.edge.id);
 					e.data.edge.hidden = true;
@@ -279,9 +294,8 @@ function adjustPosition(e, target, ps){
 function addNode(e, title){
 	if(title==null || title.length == 0) return;
 	var p = s.camera.cameraPosition(e.data.captor.x, e.data.captor.y),
-		nid = s.graph.nodes().length,
 		node = {
-			id: "n" + nid,
+			id: title,
 			label: title,
 			size: s.settings('maxNodeSize'),
 			x: p.x,
@@ -315,14 +329,26 @@ function doSelectNode(e){
 	}
 	else if(source.id != node.id){
 		var edge = {
-			id: "e" + s.graph.edges().length,
+			id: source.id + "->" + node.id,
 			source: source.id,
 			target: node.id,
 			size: s.settings('maxEdgeSize')
 		};
 		source.color = s.settings('defaultNodeColor');
 		source = null;
-		s.graph.addEdge(edge);
+		$.ajax({
+			type: 'POST',
+			data: edge,
+			url: '/edges/newedge',
+			dataType: 'JSON'
+		}).done(function(res){
+			if(res.msg == '200OK'){
+				s.graph.addEdge(edge);
+				s.refresh();
+			} else {
+				alert("Error: " + res.msg);
+			}
+		});
 	} else {
 		source.color = s.settings('defaultNodeColor');
 		source = null;
@@ -351,27 +377,35 @@ $("#auto-rescale-checkbox").change(function(){
 			angle: 0,
 			ratio: 1
 		});
+	} else {
+		if($("#layout-checkbox").is(":checked")){
+			$("#layout-checkbox").trigger("click");
+		}
 	}
 	s.refresh();
 });
 
 $("#layout-checkbox").change(function(){
 	if($(this).is(':checked')){
-		$("#auto-rescale-checkbox").prop('checked', true);
+		if(!$("#auto-rescale-checkbox").is(":checked")){
+			s.settings({autoRescale: true});
+			$("#auto-rescale-checkbox").prop('checked', true);
+		}
 		s.camera.goTo({
 			x: 0,
 			y: 0,
 			angle: 0,
 			ratio: 1
 		});
-		s.settings({autoRescale: true});
 		s.refresh();
 		s.startForceAtlas2();
 	} else {
-		$("#auto-rescale-checkbox").prop('checked', false);
+		if($("#auto-rescale-checkbox").is(":checked")){
+			$("#auto-rescale-checkbox").prop('checked', false);
+			s.settings({autoRescale: false});
+		}
 		s.killForceAtlas2();
 		reMapGraphToRender();
-		s.settings({autoRescale: false});
 		s.refresh();
 	}
 });
@@ -394,7 +428,7 @@ function reMapGraphToRender(){
 	s.graph.nodes().forEach(function(n){
 		n.x = (n.x - bCenterX) / scaleRatio;
 		n.y = (n.y - bCenterY) / scaleRatio;
-		// n.size /= bounds.sizeMax / s.settings('maxNodeSize');
+		n.size = s.settings('maxNodeSize');
 	});
 	// s.graph.edges().forEach(function(e){
 	// 	e.size /= bounds.weightMax / s.settings('maxEdgeSize');
@@ -411,14 +445,18 @@ function getGraph(){
 		graph.nodes = data;
 		console.log(data);
 		s.graph.clear().read(graph);
-		s.settings({autoRescale: true});
 		s.refresh();
+		if(!$("#layout-checkbox").is(':checked')){
+			$("#layout-checkbox").trigger('click');
+		}
 	});
 	$.getJSON('/edges/', function(data){
 		graph.edges = data;
 		console.log(graph);
 		s.graph.clear().read(graph);
-		s.settings({autoRescale: true});
 		s.refresh();
+		if(!$("#layout-checkbox").is(':checked')){
+			$("#layout-checkbox").trigger('click');
+		}
 	});
 }
