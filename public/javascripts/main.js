@@ -39,16 +39,19 @@ var menuItems = {
 	},
 	hiddable_shown = false,
 	nodeClicked = false,
-	stageMenu = { width: $("#stage-menu").width(),
-		height: $("#stage-menu").height()}
-	nodeMenu = {width: $("#node-menu").width(),
-		height: $("#node-menu").height()},
-	edgeMenu = {width: $("#edge-menu").width(),
-		height: $("#edge-menu").height()},
+	stageMenu = { width: $("#stage-menu").menu().width(),
+		height: $("#stage-menu").menu().height()}
+	nodeMenu = {width: $("#node-menu").menu().width(),
+		height: $("#node-menu").menu().height()},
+	edgeMenu = {width: $("#edge-menu").menu().width(),
+		height: $("#edge-menu").menu().height()},
 	nameValue = {width: $("#name-value").width(),
 		height: $("#name-value").height()},
 	newNodeElement = {width: $("#new-node").width(),
-		height: $("#new-node").height()};
+		height: $("#new-node").height()},
+	nodeInfo = {width: $("#node-info").width(),
+		height: $("#node-info").height()},
+	tabs = $(".tabs > li");
 
 $("body").bind('contextmenu', function(e){
     return false;
@@ -140,9 +143,8 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 			.removeClass().children().last().unbind();
 		return;
 	}
-	var pos = adjustPosition(e, stageMenu);
-	console.log(pos.cls);
 	if(e.type == 'rightClickStage'){
+		var pos = adjustPosition(e, stageMenu);
 		if($("#layout-checkbox").is(":checked"))
 			$("#layout-checkbox").trigger('click');
 		if(s.settings('autoRescale'))
@@ -157,6 +159,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 			}
 		}).addClass(pos.cls).css(pos.css).show();
 	} else if(e.type == 'rightClickNode') {
+		var pos = adjustPosition(e, nodeMenu);
 		$("#node-menu").menu({
 			select: function(evt, ui){
 				var p = adjustPosition(e, nameValue, 10),
@@ -181,6 +184,7 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 			}
 		}).addClass(pos.cls).css(pos.css).show();
 	} else if(e.type == 'rightClickEdge') {
+		var pos = adjustPosition(e, edgeMenu);
 		$("#edge-menu").menu({
 			select: function(evt, ui){
 				var eid = e.data.edge.id;
@@ -203,14 +207,13 @@ s.bind('rightClickStage rightClickNode rightClickEdge', function(e){
 	}
 });
 
-var nodeInfo = {width: $("#node-info").width(),
-				height: $("#node-info").height()},
-	tabs = $(".tabs > li");
+
 tabs.on("click", function(){
 	tabs.removeClass("active");
 	$(this).addClass("active");
 	$(".detail").html("<span>"+$(this).text()+"</span>");
 });
+
 function showNodeInfo(e){
 	var node = e.data.node,
 		pos = adjustPosition(e, nodeInfo, 10);
@@ -340,7 +343,7 @@ function adjustPosition(e, target, ps){
 		cls = "";
 	if(!ps) ps = 0;
 	if(y + h + ps + 1 > winH){
-		y = winH - h - 2*ps - 1;
+		y -= 1 + h + ps;
 		cls += "down";
 	} else {
 		y += 1 + ps;
