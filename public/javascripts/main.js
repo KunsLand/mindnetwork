@@ -229,7 +229,7 @@ function removeNode(nid){
 		} else { alert(res.msg); }
 	});
 	deleteAllEdgesRequest(nid, function(res){
-		if(res.msg != "200OK") { alert(res.msg); }
+		if(res.msg != "200OK") { alert(res.msg); console.log(res.msg); }
 	});
 }
 
@@ -239,7 +239,7 @@ function removeEdge(eid){
 			e.data.edge.hidden = true;
 			s.graph.dropEdge(eid);
 			s.refresh();
-		} else { alert(res.msg);}
+		} else { alert(res.msg); console.log(res.msg); }
 	});
 }
 
@@ -253,7 +253,7 @@ function removeAllEdges(nid){
 			});
 			s.refresh();
 		}
-		else { alert(res.msg); }
+		else { alert(res.msg); console.log(res.msg); }
 	});
 }
 

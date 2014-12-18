@@ -3,9 +3,9 @@ var router = express.Router();
 
 /* GET nodes listing. */
 router.get('/', function(req, res) {
-    var db = req.db;
-    db.collection('nodes').find().toArray(function (err, items) {
-        res.json(items);
+    var query = req.client.query('select * from node');
+    query.on('row', function(err, row){
+       res.send(JSON.stringify(row)); 
     });
 });
 
@@ -13,8 +13,12 @@ router.get('/', function(req, res) {
  * POST to newnode.
  */
 router.post('/newnode', function(req, res) {
-    var db = req.db;
-    db.collection('nodes').insert(req.body, function(err, result) {
+    var client = req.client,
+        data = req.body;
+    client.query(
+        "insert into node(id, label, size, x, y) values($1, $2, $3, $4, $5)",
+        [data.id, data.label, data.size, data.x, data.y],
+        function(err, result) {
         res.send((err === null) ? { msg: '200OK' } : { msg: err });
     });
 });
@@ -23,9 +27,10 @@ router.post('/newnode', function(req, res) {
  * DELETE node with :id.
  */
 router.delete('/delnode/:id', function(req, res) {
-    var db = req.db;
+    var client = req.client;
     var nodeToDel = req.params.id;
-    db.collection('nodes').remove({id: nodeToDel}, function(err, result) {
+    client.query("delete from node where id = '" + nodeToDel + "'",
+        function(err, result) {
         res.send((err === null) ? { msg: '200OK' } : { msg: err });
     });
 });

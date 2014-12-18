@@ -5,13 +5,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var pg = require('pg');
-// var db = pg.db("mongodb://localhost:27017/mindnetwork",
-//         {native_parser:true});
+var client = new pg.Client("postgres://admin:123456@localhost/mindnetwork");
 
 var routes = require('./routes/index');
 //var users = require('./routes/users');
-// var nodes = require('./routes/nodes');
-// var edges = require('./routes/edges');
+var nodes = require('./routes/nodes');
+var edges = require('./routes/edges');
 
 var app = express();
 
@@ -28,15 +27,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
-// app.use(function(req,res,next){
-//     req.db = db;
-//     next();
-// });
+client.connect();
+app.use(function(req,res,next){
+    req.client = client;
+    next();
+});
 
 app.use('/', routes);
 // app.use('/users', users);
-// app.use('/nodes', nodes);
-// app.use('/edges', edges);
+app.use('/nodes', nodes);
+app.use('/edges', edges);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
