@@ -221,33 +221,37 @@ function showNodeInfo(e){
 	hiddable_shown = true;
 }
 
+function handleError(xhr, status, err){
+	console.log(xhr, status, err);
+}
+
 function removeNode(nid){
 	deleteNodeRequest(nid, function(){
+	}, handleError);
+	deleteAllEdgesRequest(nid, function(){
 		s.graph.dropNode(nid);
 		s.refresh();
-	});
-	deleteAllEdgesRequest(nid, function(){
-		//
-	});
+	}, handleError);
 }
 
 function removeEdge(eid){
 	deleteEdgeRequest(eid, function(){
-		e.data.edge.hidden = true;
+		s.graph.edges(eid).hidden = true;
 		s.graph.dropEdge(eid);
 		s.refresh();
-	});
+	}, handleError);
 }
 
 function removeAllEdges(nid){
 	deleteAllEdgesRequest(nid, function(){
 		s.graph.edges().forEach(function(e){
 			if(e.source == nid || e.target == nid){
+				e.hidden = true;
 				s.graph.dropEdge(e.id);
 			}
 		});
 		s.refresh
-	});
+	}, handleError);
 }
 
 function doSelectCreateNewNode(e){
@@ -288,7 +292,7 @@ function addNode(e, title){
 	newNodeRequest(node, function(){
 		s.graph.addNode(node);
 		s.refresh();
-	});
+	}, handleError);
 }
 
 var source = null;
@@ -310,7 +314,7 @@ function doSelectNode(e){
 		newEdgeRequest(edge, function(){
 			s.graph.addEdge(edge);
 			s.refresh();
-		});
+		}, handleError);
 	} else {
 		source.color = s.settings('defaultNodeColor');
 		source = null;

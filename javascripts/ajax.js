@@ -3,47 +3,59 @@ var apiKey = "tMOOR41-N4fzAIZ76Il5Uv4nlj60bPrF",
 	url = "https://api.mongolab.com/api/1/databases/"
 		+ db + "/collections";
 
-function newNodeRequest (node, callback) {
+function newNodeRequest (node, callback, handleError) {
 	$.ajax({
 		type: 'POST',
 		data: JSON.stringify(node),
 		url: url + '/nodes?apiKey=' + apiKey,
 		contentType: 'application/json',
-		success: callback
+		success: callback,
+		error: handleError
 	});
 }
 
-function newEdgeRequest (edge, callback) {
+function newEdgeRequest (edge, callback, handleError) {
 	$.ajax({
 		type: 'POST',
 		data: JSON.stringify(edge),
 		url: url + '/edges?apiKey=' + apiKey,
 		contentType: 'application/json',
-		success: callback
+		success: callback,
+		error: handleError
 	});
 }
 
-function deleteNodeRequest (nid, callback) {
+function deleteNodeRequest (nid, callback, handleError) {
 	$.ajax({
-		type: 'DELETE',
-		url: url + '/nodes/' + nid + "?apiKey="+apiKey,
-		success: callback
+		type: 'PUT',
+		url: url + '/nodes?q={ "id" : "' + nid + '"}&apiKey='+apiKey,
+		data: JSON.stringify([]),
+		contentType: "application/json",
+		success: callback,
+		error: handleError
 	});
 }
 
-function deleteEdgeRequest (eid, callback) {
+function deleteEdgeRequest (eid, callback, handleError) {
 	$.ajax({
-		type: 'DELETE',
-		url: '/edges/deledge/' + eid,
-		success: callback
+		type: 'PUT',
+		url: url + '/edges?q={ "id" : "' + eid + '"}&apiKey=' + apiKey,
+		data: JSON.stringify([]),
+		contentType: "application/json",
+		success: callback,
+		error: handleError
 	});
 }
 
-function deleteAllEdgesRequest(nid, callback){
+function deleteAllEdgesRequest(nid, callback, handleError){
 	$.ajax({
-		type: 'DELETE',
-		url: '/edges/deledges/' + nid,
-		success: callback
+		type: 'PUT',
+		url: url + '/edges?q={$or: [{"source": "'
+			+ nid + '"}, {"target": "' + nid + '"}]}&apiKey='+apiKey,
+		data: JSON.stringify([]),
+		contentType: "application/json",
+		success: callback,
+		error: handleError
 	});
 }
 
