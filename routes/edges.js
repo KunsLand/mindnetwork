@@ -6,7 +6,6 @@ router.get('/', function(req, res) {
     var client = req.client;
     client.query('select * from edge', function(err, result){
         var data = JSON.stringify(result.rows);
-        console.log(data);
         res.send(data);
     });
 });

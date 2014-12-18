@@ -3,9 +3,10 @@ var router = express.Router();
 
 /* GET nodes listing. */
 router.get('/', function(req, res) {
-    var query = req.client.query('select * from node');
-    query.on('row', function(err, row){
-       res.send(JSON.stringify(row)); 
+    var client = req.client;
+    client.query('select * from node', function(err, result){
+        var data = JSON.stringify(result.rows);
+        res.send(data);
     });
 });
 
