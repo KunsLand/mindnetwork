@@ -222,28 +222,33 @@ function showNodeInfo(e){
 }
 
 function removeNode(nid){
+	$("#loading").show();
 	deleteNodeRequest(nid, function(res){
-		if(res.msg=='200OK'){
-			s.graph.dropNode(nid);
-			s.refresh();
-		} else { alert(res.msg); }
+		if(res.msg != '200OK') { alert(res.msg); }
 	});
 	deleteAllEdgesRequest(nid, function(res){
-		if(res.msg != "200OK") { alert(res.msg); console.log(res.msg); }
+		if(res.msg == '200OK'){
+			s.graph.dropNode(nid);
+			s.refresh();
+		} else { alert(res.msg); console.log(res.msg); }
+		$("#loading").hide();
 	});
 }
 
 function removeEdge(eid){
+	$("#loading").show();
 	deleteEdgeRequest(eid, function(res){
 		if(res.msg=='200OK'){
 			e.data.edge.hidden = true;
 			s.graph.dropEdge(eid);
 			s.refresh();
 		} else { alert(res.msg); console.log(res.msg); }
+		$("#loading").show();
 	});
 }
 
 function removeAllEdges(nid){
+	$("#loading").show();
 	deleteAllEdgesRequest(nid, function(res){
 		if(res.msg == "200OK"){
 			s.graph.edges().forEach(function(e){
@@ -254,6 +259,7 @@ function removeAllEdges(nid){
 			s.refresh();
 		}
 		else { alert(res.msg); console.log(res.msg); }
+		$("#loading").hide();
 	});
 }
 
@@ -292,6 +298,7 @@ function addNode(e, title){
 			x: p.x,
 			y: p.y
 		};
+	$("#loading").show();
 	newNodeRequest(node, function(res){
 		if(res.msg == '200OK'){
 			s.graph.addNode(node);
@@ -299,6 +306,7 @@ function addNode(e, title){
 		} else {
 			alert(res.msg);
 		}
+		$("#loading").hide();
 	});
 }
 
@@ -318,6 +326,7 @@ function doSelectNode(e){
 		};
 		source.color = s.settings('defaultNodeColor');
 		source = null;
+		$("#loading").show();
 		newEdgeRequest(edge, function(res){
 			if(res.msg == '200OK'){
 				s.graph.addEdge(edge);
@@ -325,6 +334,7 @@ function doSelectNode(e){
 			} else {
 				alert(res.msg);
 			}
+			$("#loading").hide();
 		});
 	} else {
 		source.color = s.settings('defaultNodeColor');
@@ -390,10 +400,14 @@ getGraph();
 function getGraph(){
 	var nodes = null,
 		edges = null,
+		nf = false, ef = false,
 		graph = {nodes: [], edges: []};
 	getNodes(function(data){
 		graph.nodes = data;
 		console.log(data);
+		nf = true;
+		if(!ef) return;
+		$("#loading").hide();
 		s.graph.clear().read(graph);
 		s.refresh();
 		if(!$("#layout-checkbox").is(':checked')){
@@ -403,6 +417,9 @@ function getGraph(){
 	getEdges(function(data){
 		graph.edges = data;
 		console.log(graph);
+		ef = true;
+		if(!nf) return;
+		$("#loading").hide();
 		s.graph.clear().read(graph);
 		s.refresh();
 		if(!$("#layout-checkbox").is(':checked')){

@@ -143,3 +143,14 @@ div > span {
 .tabs > li > span {
 	cursor: pointer;
 }
+
+#loading {
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1000;
+	padding-top: 20%;
+	position: absolute;
+	background: rgba(255, 255, 255, 0.5);
+}
