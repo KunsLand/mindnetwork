@@ -223,26 +223,32 @@ function showNodeInfo(e){
 
 function handleError(xhr, status, err){
 	console.log(xhr, status, err);
+	$("#loading").hide();
 }
 
 function removeNode(nid){
+	$("#loading").show();
 	deleteNodeRequest(nid, function(){
 	}, handleError);
 	deleteAllEdgesRequest(nid, function(){
 		s.graph.dropNode(nid);
 		s.refresh();
+		$("#loading").hide();
 	}, handleError);
 }
 
 function removeEdge(eid){
+	$("#loading").show();
 	deleteEdgeRequest(eid, function(){
 		s.graph.edges(eid).hidden = true;
 		s.graph.dropEdge(eid);
 		s.refresh();
+		$("#loading").hide();
 	}, handleError);
 }
 
 function removeAllEdges(nid){
+	$("#loading").show();
 	deleteAllEdgesRequest(nid, function(){
 		s.graph.edges().forEach(function(e){
 			if(e.source == nid || e.target == nid){
@@ -251,6 +257,7 @@ function removeAllEdges(nid){
 			}
 		});
 		s.refresh
+		$("#loading").hide();
 	}, handleError);
 }
 
@@ -289,9 +296,11 @@ function addNode(e, title){
 			x: p.x,
 			y: p.y
 		};
+	$("#loading").show();
 	newNodeRequest(node, function(){
 		s.graph.addNode(node);
 		s.refresh();
+		$("#loading").hide();
 	}, handleError);
 }
 
@@ -311,9 +320,11 @@ function doSelectNode(e){
 		};
 		source.color = s.settings('defaultNodeColor');
 		source = null;
+		$("#loading").show();
 		newEdgeRequest(edge, function(){
 			s.graph.addEdge(edge);
 			s.refresh();
+			$("#loading").hide();
 		}, handleError);
 	} else {
 		source.color = s.settings('defaultNodeColor');
@@ -379,10 +390,14 @@ getGraph();
 function getGraph(){
 	var nodes = null,
 		edges = null,
+		nf = false, ef = false,
 		graph = {nodes: [], edges: []};
 	getNodes(function(data){
 		graph.nodes = data;
-		console.log(data);
+		console.log(graph);
+		nf = true;
+		if(!ef) return;
+		$("#loading").hide();
 		s.graph.clear().read(graph);
 		s.refresh();
 		if(!$("#layout-checkbox").is(':checked')){
@@ -392,7 +407,10 @@ function getGraph(){
 	getEdges(function(data){
 		graph.edges = data;
 		console.log(graph);
+		ef = true;
+		if(!nf) return;
 		if(graph.nodes.length == 0) return;
+		$("#loading").hide();
 		s.graph.clear().read(graph);
 		s.refresh();
 		if(!$("#layout-checkbox").is(':checked')){
