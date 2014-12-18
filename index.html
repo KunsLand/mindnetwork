@@ -1,0 +1,76 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<title>Mind Network</title>
+		<link rel="stylesheet" type="text/css" href="stylesheets/style.css">
+		<link rel="stylesheet" type="text/css" href="stylesheets/switch.css">
+		<link rel="stylesheet" type="text/css" href="stylesheets/nav.css">
+		<link rel="stylesheet" type="text/css" href="stylesheets/jquery-ui.min.css">
+	</head>
+	<body>
+		<div id="container"></div>
+		<div id="control-panel" class="unselectable">
+			<label class="switch green">
+				Auto Rescale: 
+				<input id="auto-rescale-checkbox" type="checkbox">
+				<i></i>
+			</label>
+			<br/>
+			<label class="switch green">
+				Force Layout: 
+				<input id="layout-checkbox" type="checkbox">
+				<i></i>
+			</label>
+		</div>
+		<ul id="stage-menu" class="menu">
+			<li>Create New Node</li>
+		</ul>
+		<ul id="node-menu" class="menu">
+			<li>Edit</li>
+			<li>Delete</li>
+			<li>Hide</li>
+			<li>Remove All Edges</li>
+		</ul>
+		<ul id="edge-menu" class="menu">
+			<li>Edit</li>
+			<li>Delete</li>
+			<li>Hide</li>
+			<li>Reverse</li>
+		</ul>
+		<div id="new-node">
+			<span>Title: </span>
+			<input type="text">
+			<input type="Submit" value="OK">
+		</div>
+		<div id="name-value">
+			<span>Tag: </span>
+			<input type="text">
+			<span>URL: </span>
+			<input type="text">
+			<input type="Submit" value="OK">
+		</div>
+		<div id="node-info">
+			<div class="tab-container">
+				<ul class="tabs clearfix">
+					<li>
+						<span>Settings</span>
+					</li>
+					<li>
+						<span>Node in Network</span>
+					</li>
+					<li class="active">
+						<span>Label Details</span>
+					</li>
+				</ul>
+			</div>
+			<div class="detail"></div>
+		</div>
+		<script type="text/javascript" src="javascripts/jquery.min.js"></script>
+		<script type="text/javascript" src="javascripts/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="javascripts/sigma.min.js"></script>
+		<script type="text/javascript" src="javascripts/sigma.layout.forceAtlas2.min.js"></script>
+		<script type="text/javascript" src="javascripts/sigma.plugins.dragNodes.min.js"></script>
+		<script type="text/javascript" src="javascripts/ajax.js"></script>
+		<script type="text/javascript" src="javascripts/main.js"></script>
+	</body>
+</html>
