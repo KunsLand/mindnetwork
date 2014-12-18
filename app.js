@@ -5,7 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var pg = require('pg');
-var client = new pg.Client(process.evn.DATABASE_URL
+var client = new pg.Client(process.env.DATABASE_URL
     || "postgres://admin:123456@localhost/mindnetwork");
 
 var routes = require('./routes/index');
